@@ -64,4 +64,29 @@ router.post('/addProduct', async (req, res) => {
      }
 });
 
+router.delete('/deleteProduct', async (req, res) => {
+    try {
+        const { productId } = req.body;
+
+        // 1️⃣ Cari produk berdasarkan `productId`
+        const product = await ProductModels.findOne({ productId });
+
+        if (!product) {
+            return res.status(404).json(ResponseDataNotFound("Product not found"));
+        }
+
+        // 2️⃣ Hapus video yang terhubung dengan produk
+        await VideosModel.deleteOne({ product: product._id });
+
+        // 3️⃣ Hapus produk itu sendiri
+        await ProductModels.deleteOne({ productId });
+
+        return res.status(200).json(ResponseSuccess({}, "Product deleted successfully"));
+    } catch (error) {
+        console.error("Error deleting product & video:", error);
+        return res.status(500).json(ResponseError());
+    }
+});
+
+
 module.exports = router
