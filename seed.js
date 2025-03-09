@@ -18,26 +18,10 @@ async function connectDatabase() {
     }
 }
 
-const seedProducts = [
-    {
-          productId: randomstring.generate(),
-          linkProduct: "https://tokopedia.link/EJkQgllIFQb",
-          title: "Tas Selempang Pria WEIXIER 1855 Crossbody Sling Bag",
-          price: "169.000",
-          videoId: {}
-    },
-    {
-          productId: randomstring.generate(),
-          linkProduct: "https://tokopedia.link/vFTtennIFQb",
-          title: "WINOD Siena Flatshoes Wanita",
-          price: "89.900",
-          videoId: {}
-    }
-];
-
 // Fungsi untuk memasukkan data ke database
+
 async function seedDatabase() {
-     try {
+    try {
           await connectDatabase(); // Pastikan database terhubung
 
           // Hapus semua data lama
@@ -45,33 +29,54 @@ async function seedDatabase() {
           await ProductModels.deleteMany({});
           console.log("Old data removed");
 
-          // Masukkan data ke koleksi Products terlebih dahulu
+          // **1. Masukkan Produk Terlebih Dahulu**
+          const seedProducts = [
+               {
+                    productId: randomstring.generate(),
+                    linkProduct: "https://tokopedia.link/EJkQgllIFQb",
+                    videoLink: "https://youtu.be/vsdex1l3Olc?si=N5S1PLEz7GCvRBJM",
+                    title: "Tas Selempang Pria WEIXIER 1855 Crossbody Sling Bag",
+                    price: "169.000"
+               },
+               {
+                    productId: randomstring.generate(),
+                    linkProduct: "https://tokopedia.link/vFTtennIFQb",
+                    title: "WINOD Siena Flatshoes Wanita",
+                    videoLink: "https://youtu.be/Yz027p6Fujc?si=Q58Ifm3B4sUWmEpa",
+                    price: "89.900"
+               }
+          ];
+
+          // Insert Produk ke Database
           const insertedProducts = await ProductModels.insertMany(seedProducts);
           console.log("Products Inserted:", insertedProducts);
 
-          // Pastikan ada jumlah produk yang cukup untuk dipasangkan dengan video
-          if (insertedProducts.length < 2) {
-               throw new Error("Jumlah produk kurang untuk dihubungkan dengan video!");
-          }
-
-          // Ambil `_id` dari produk yang telah disimpan dan pasangan setiap video dengan satu produk
+          // **2. Masukkan Video dengan Referensi Produk**
           const seedVideos = insertedProducts.map((product, index) => ({
                videoId: randomstring.generate(),
                urlImageThumbnail: index === 0
-                    ? "https://youtu.be/vsdex1l3Olc?si=N5S1PLEz7GCvRBJM"
-                    : "https://youtu.be/Yz027p6Fujc?si=Q58Ifm3B4sUWmEpa",
-               product: product._id // Setiap video hanya memiliki satu produk
+                    ? "https://images.tokopedia.net/img/cache/700/VqbcmM/2023/11/12/5944710a-39bb-4122-8eb7-320c1c625458.jpg"
+                    : "https://images.tokopedia.net/img/cache/700/VqbcmM/2023/9/29/6e26ba35-a7a3-4893-83f6-5650b5b71a0e.jpg",
+               product: product._id // **Simpan ID Produk dalam Video**
           }));
 
-          // Masukkan data ke koleksi Videos
+          // Insert Video ke Database
           const insertedVideos = await VideosModel.insertMany(seedVideos);
           console.log("Videos Inserted:", insertedVideos);
 
+          // **3. Update Produk dengan Referensi Video**
+          for (let i = 0; i < insertedProducts.length; i++) {
+               await ProductModels.findByIdAndUpdate(insertedProducts[i]._id, {
+                    video: insertedVideos[i]._id
+               });
+          }
+
+          console.log("Products updated with video references.");
           // Tutup koneksi setelah selesai
           mongoose.connection.close();
-     } catch (error) {
-          console.error("Error seeding database:", error);
-     }
+    } catch (error) {
+        console.error("Error seeding database:", error);
+    }
 }
 
 // Jalankan fungsi seed

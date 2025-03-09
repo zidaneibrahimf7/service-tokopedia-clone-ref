@@ -1,8 +1,8 @@
-const express       = require('express')
-const { ResponseSuccess, ResponseError } = require('../../../utils/ResponseMsg')
-const VideosModel = require('../../models/Videos/model')
+const express                                = require('express')
+const { ResponseSuccess, ResponseError }     = require('../../../utils/ResponseMsg')
+const VideosModel                            = require('../../models/Videos/model')
 
-const router        = express.Router()
+const router                                 = express.Router()
 
 router.get('/getVideoList', async (req, res) => {
      try {
@@ -13,10 +13,11 @@ router.get('/getVideoList', async (req, res) => {
      }
 })
 
-router.post('/getVideoListDetail', async (req, res) => {
+router.post('/getVideoList', async (req, res) => {
      const body = req.body
-     const {productId} = body
-     const product = await VideosModel.findOne({ "product": productId }).populate('product')
+     // const {productId} = body
+     // const product = await VideosModel.findOne({ "product": productId }).populate('product')
+     const product = await VideosModel.find({}).populate('product') 
 
      res.status(200).send(product)
 })
@@ -26,7 +27,7 @@ router.post('/getVideoListById', async (req, res) => {
           const body = req.body
           const {videoId} = body
           // const video = await VideosModel.findById(videoId)
-          const video = await VideosModel.findOne({"videoId": videoId})
+          const video = await VideosModel.findOne({"_id": videoId})
           // Fungsi dari findOne itu spesifik ingin mengambil data dari key apa. sedangkan findById, harus diambil dari _id itu
      
           res.status(200).send(ResponseSuccess(video, 'Get Video List By Id Success'))

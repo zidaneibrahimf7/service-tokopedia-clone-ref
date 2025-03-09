@@ -28,6 +28,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/Videos', require('./src/routes/Videos/route.js'))
 app.use('/api/Products', require('./src/routes/Products/route.js'))
+app.use('/api/Comments', require('./src/routes/Comments/route.js'))
 
 async function loadDatabase(){
      try {
